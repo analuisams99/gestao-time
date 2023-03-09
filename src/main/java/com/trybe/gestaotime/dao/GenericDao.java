@@ -3,63 +3,60 @@ package com.trybe.gestaotime.dao;
 import java.io.Serializable;
 import java.util.List;
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.MappedSuperclass;
+import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 
-/**Classe abstrata GenericDao.*/
-@MappedSuperclass
+/**Classe abstrata GenericDao que estende Serializable. */
 public abstract class GenericDao<T, I extends Serializable> {
-  private Class<T> classe;
-  private EntityManagerFactory emf;
 
-  public GenericDao(Class<T> classe) {
-    this.classe = classe;
-    this.emf = Persistence.createEntityManagerFactory("crudHibernatePU");
+  private final Class<T> entityClass;
+  private final EntityManager em = Persistence.createEntityManagerFactory("crudHibernatePU")
+      .createEntityManager();
+
+  /**Método Construtor. */
+  public GenericDao(Class<T> entityClass) {
+    this.entityClass = entityClass;
   }
-  
-  /**Método de salvar. */
+
+  /**Metodo para salvar. */
   public void salvar(T entity) {
-    EntityManager em = emf.createEntityManager();
-    em.getTransaction().begin();
+    EntityTransaction transaction = em.getTransaction();
+    transaction.begin();
     em.persist(entity);
-    em.getTransaction().commit();
-    em.close();
+    transaction.commit();
   }
-  
-  /**Método de atualizar. */
+
+  /**Metodo para atualizar. */
   public void editar(T entity) {
-    EntityManager em = emf.createEntityManager();
-    em.getTransaction().begin();
+    EntityTransaction transaction = em.getTransaction();
+    transaction.begin();
     em.merge(entity);
-    em.getTransaction().commit();
-    em.close();
+    transaction.commit();
   }
-  
-  /**Método de deletar. */
+
+  /**Metodo para remover.*/
   public void deletar(Long id) {
-    EntityManager em = emf.createEntityManager();
-    em.getTransaction().begin();
-    T entity = em.find(classe, id);
+    EntityTransaction transaction = em.getTransaction();
+    transaction.begin();
+    T entity = em.find(entityClass, id);
     em.remove(entity);
-    em.getTransaction().commit();
-    em.close();
+    transaction.commit();
   }
-  
-  /**Método de listar por Id. */
+
+  /**Metodo de buscar por id.*/
   public T pegar(Long id) {
-    EntityManager em = emf.createEntityManager();
-    em.getTransaction().begin();
-    T entity = em.find(classe, id);
-    em.close();
-    return entity;
+    return em.find(entityClass, id);
   }
-  
-  /**Método de listar tudo. */
+
+  /**Metodo de listar todos.*/
   public List<T> listar() {
-    EntityManager em = emf.createEntityManager();
-    List<T> entity = em.createQuery("from Servidor", classe).getResultList();
-    em.close();
-    return entity;
+    CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+    CriteriaQuery<T> criteriaQuery = criteriaBuilder.createQuery(entityClass);
+    Root<T> root = criteriaQuery.from(entityClass);
+    criteriaQuery.select(root);
+    return em.createQuery(criteriaQuery).getResultList();
   }
 }
