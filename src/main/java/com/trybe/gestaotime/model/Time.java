@@ -2,9 +2,7 @@ package com.trybe.gestaotime.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -23,10 +21,10 @@ public class Time {
   
   private String nome;
   
-  @OneToMany(mappedBy = "time", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany()
   private List<Jogador> jogadores;
   
-  @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
+  @ManyToMany()
   @JoinTable(name = "time_torcedor",
       joinColumns = @JoinColumn(name = "time_id"),
       inverseJoinColumns = @JoinColumn(name = "torcedor_id"))
